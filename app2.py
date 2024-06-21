@@ -13,6 +13,16 @@ CLIENT_SECRET = "d2cb6d92f4fe4351b84e74625f07c9ac"
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
+def get_artist_top_tracks(artist_name):
+    results = sp.search(q=artist_name, type="artist")
+    if results and results["artists"]["items"]:
+        artist = results["artists"]["items"][0]
+        top_tracks = sp.artist_top_tracks(artist['id'])
+        tracks = [(track['name'], track['preview_url'], track['external_urls']['spotify']) for track in top_tracks['tracks']]
+        return tracks
+    else:
+        return []
+
 def get_artist_image(artist_name):
     results = sp.search(q=artist_name, type="artist")
 
