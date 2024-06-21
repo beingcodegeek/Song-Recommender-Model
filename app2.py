@@ -25,7 +25,6 @@ def get_artist_top_tracks(artist_name):
 
 def get_artist_image(artist_name):
     results = sp.search(q=artist_name, type="artist")
-
     if results and results["artists"]["items"]:
         artist = results["artists"]["items"][0]
         if artist["images"]:
@@ -38,7 +37,6 @@ def get_artist_image(artist_name):
 def get_song_album_cover_url(song_name, artist_name):
     search_query = f"track:{song_name} artist:{artist_name}"
     results = sp.search(q=search_query, type="track")
-
     if results and results["tracks"]["items"]:
         track = results["tracks"]["items"][0]
         album_cover_url = track["album"]["images"][0]["url"]
@@ -147,18 +145,22 @@ if st.button('Show Recommendation'):
             st.markdown(f'<a href="{external_url}" style="color:yellow; font-weight:bold;">Listen on Spotify</a>', unsafe_allow_html=True)
             st.markdown("---")
 
+# Define list of top 20 artists
+top_20_artists = [
+    'Michael Jackson', 'The Beatles', 'Queen', 'Elvis Presley', 'Taylor Swift',
+    'Ariana Grande', 'Ed Sheeran', 'Justin Bieber', 'Rihanna', 'Eminem',
+    'Lady Gaga', 'Madonna', 'Whitney Houston', 'Coldplay', 'Linkin Park',
+    'Beyoncé', 'Maroon 5', 'Adele', 'Katy Perry', 'Bruno Mars'
+]
+
 # Display section for top 20 artists with their posters
 show_artists_section = st.checkbox("Show Top 20 Artists Section")
 if show_artists_section:
     st.markdown('<div class="centered-header">🎤 Top 20 Artists 🎤</div>', unsafe_allow_html=True)
 
-    # Define list of top 20 artists
-    top_20_artists = [
-        'Michael Jackson', 'The Beatles', 'Queen', 'Elvis Presley', 'Taylor Swift',
-        'Ariana Grande', 'Ed Sheeran', 'Justin Bieber', 'Rihanna', 'Eminem',
-        'Lady Gaga', 'Madonna', 'Whitney Houston', 'Coldplay', 'Linkin Park',
-        'Beyoncé', 'Maroon 5', 'Adele', 'Katy Perry', 'Bruno Mars'
-    ]
+    # Initialize session state for top tracks display
+    if 'top_tracks_display' not in st.session_state:
+        st.session_state['top_tracks_display'] = {artist: False for artist in top_20_artists}
 
     # Display top 20 artists with their images
     for i in range(0, len(top_20_artists), 5):
@@ -169,6 +171,9 @@ if show_artists_section:
                 if artist_image_url:
                     st.image(artist_image_url, use_column_width=True, caption=artist_name)
                     if st.button(f"Show {artist_name}'s Top Tracks", key=f"tracks_{artist_name}"):
+                        st.session_state['top_tracks_display'][artist_name] = not st.session_state['top_tracks_display'][artist_name]
+
+                    if st.session_state['top_tracks_display'][artist_name]:
                         artist_top_tracks = get_artist_top_tracks(artist_name)
                         if artist_top_tracks:
                             st.write(f"**Top Tracks by {artist_name}:**")
@@ -179,6 +184,6 @@ if show_artists_section:
 
 # Footer
 st.markdown(
-    '<div class="footer">Made with ❤️ by Sachin <br> Data Source: Spotify API</div>',
+    '<div class="footer">Made with ❤️ by Sachin | Data Source: Spotify API</div>',
     unsafe_allow_html=True
 )
