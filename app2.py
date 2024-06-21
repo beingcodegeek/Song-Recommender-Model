@@ -184,6 +184,6 @@ if show_artists_section:
 
 # Footer
 st.markdown(
-    '<div class="footer">Made with ❤️ by Sachin | Data Source: Spotify API</div>',
+    '<div class="footer">Developed with ❤️ by Sachin <br> Data Source: Spotify API</div>',
     unsafe_allow_html=True
 )
