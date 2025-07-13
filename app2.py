@@ -9,10 +9,11 @@ from streamlit_lottie import st_lottie
 CLIENT_ID = "bceab9d31ba84f14a439cd894d322aa9"
 CLIENT_SECRET = "d2cb6d92f4fe4351b84e74625f07c9ac"
 
-# Initialize the Spotify client
+# Initialize Spotify client
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
+# Fetch top tracks of an artist
 def get_artist_top_tracks(artist_name):
     results = sp.search(q=artist_name, type="artist")
     if results and results["artists"]["items"]:
@@ -23,6 +24,7 @@ def get_artist_top_tracks(artist_name):
     else:
         return []
 
+# Fetch artist image
 def get_artist_image(artist_name):
     results = sp.search(q=artist_name, type="artist")
     if results and results["artists"]["items"]:
@@ -34,6 +36,7 @@ def get_artist_image(artist_name):
     else:
         return None
 
+# Get album cover for song
 def get_song_album_cover_url(song_name, artist_name):
     search_query = f"track:{song_name} artist:{artist_name}"
     results = sp.search(q=search_query, type="track")
@@ -44,6 +47,7 @@ def get_song_album_cover_url(song_name, artist_name):
     else:
         return "https://i.postimg.cc/0QNxYz4V/social.png"
 
+# Song recommendation logic
 def recommend(song):
     index = music[music['song'] == song].index[0]
     distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
@@ -55,27 +59,26 @@ def recommend(song):
         recommended_music.append((song_name, album_cover_url))
     return recommended_music
 
-# Set page title and icon
+# Streamlit app configuration
 st.set_page_config(page_title="Song Recommender", page_icon=":musical_note:")
 
 # CSS styling
-st.markdown(
-    f"""
+st.markdown("""
     <style>
-    .recommendation {{
+    .recommendation {
         text-align: center;
-    }}
-    .song-title {{
+    }
+    .song-title {
         font-weight: bold;
-    }}
-    .centered-header {{
+    }
+    .centered-header {
         text-align: center;
         font-size: 2.5em;
         font-weight: bold;
-        color: red; /* Changed text color to red */
+        color: red;
         margin-bottom: 1em;
-    }}
-    .footer {{
+    }
+    .footer {
         position: fixed;
         left: 0;
         bottom: 0;
@@ -83,34 +86,31 @@ st.markdown(
         background-color: black;
         text-align: center;
         padding: 10px;
-        color: yellow; /* Changed footer text color to yellow */
-    }}
-    .artist-column {{
-        padding-bottom: 20px; /* Add padding between rows */
-        text-align: center; /* Center-align the artist images and buttons */
-    }}
+        color: yellow;
+    }
+    .artist-column {
+        padding-bottom: 20px;
+        text-align: center;
+    }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
-# Main content
+# App header
 st.markdown('<div class="centered-header">🎵 Song Recommender Model 🎵</div>', unsafe_allow_html=True)
 
-# Load data
+# Load recommendation data
 music = pickle.load(open('df.pkl', 'rb'))
 similarity = pickle.load(open('similarity.pkl', 'rb'))
 
-# Load Lottie animation
+# Lottie animation
 lottie_url = "https://lottie.host/43dd85bb-1e38-4038-aaa5-cead040c6532/pffTbodcEz.json"
 st_lottie(lottie_url, height=200)
 
+# Song selection
 music_list = music['song'].values
-selected_song = st.selectbox(
-    "Type or select a song from the dropdown",
-    music_list
-)
+selected_song = st.selectbox("Type or select a song from the dropdown", music_list)
 
+# Show recommendations
 if st.button('Show Recommendation'):
     with st.spinner('Fetching recommendations...'):
         recommended_music = recommend(selected_song)
@@ -121,7 +121,6 @@ if st.button('Show Recommendation'):
         st.markdown(f'<p style="color:yellow; font-weight:bold; font-size:1.2em;">{song_name}</p>', unsafe_allow_html=True)
 
         col1, col2 = st.columns([1, 4])
-
         with col1:
             st.image(album_cover_url, width=100)
 
@@ -145,7 +144,7 @@ if st.button('Show Recommendation'):
             st.markdown(f'<a href="{external_url}" style="color:yellow; font-weight:bold;">Listen on Spotify</a>', unsafe_allow_html=True)
             st.markdown("---")
 
-# Define list of top 20 artists
+# Top artists list
 top_20_artists = [
     'Michael Jackson', 'The Beatles', 'Queen', 'Elvis Presley', 'Taylor Swift',
     'Ariana Grande', 'Ed Sheeran', 'Justin Bieber', 'Rihanna', 'Eminem',
@@ -153,23 +152,21 @@ top_20_artists = [
     'Beyoncé', 'Maroon 5', 'Adele', 'Katy Perry', 'Bruno Mars'
 ]
 
-# Display section for top 20 artists with their posters
+# Toggle artist section
 show_artists_section = st.checkbox("Show Top 20 Artists Section")
 if show_artists_section:
     st.markdown('<div class="centered-header">🎤 Top 20 Artists 🎤</div>', unsafe_allow_html=True)
 
-    # Initialize session state for top tracks display
     if 'top_tracks_display' not in st.session_state:
         st.session_state['top_tracks_display'] = {artist: False for artist in top_20_artists}
 
-    # Display top 20 artists with their images
     for i in range(0, len(top_20_artists), 5):
         cols = st.columns(5)
         for idx, artist_name in enumerate(top_20_artists[i:i+5]):
             with cols[idx]:
                 artist_image_url = get_artist_image(artist_name)
                 if artist_image_url:
-                    st.image(artist_image_url, use_column_width=True, caption=artist_name)
+                    st.image(artist_image_url, use_container_width=True, caption=artist_name)
                     if st.button(f"Show {artist_name}'s Top Tracks", key=f"tracks_{artist_name}"):
                         st.session_state['top_tracks_display'][artist_name] = not st.session_state['top_tracks_display'][artist_name]
 
